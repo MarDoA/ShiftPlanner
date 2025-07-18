@@ -3,12 +3,12 @@ from datetime import datetime
 import calendar
 
 DAYS = ["Saturday","Sunday","Monday","Tuesday","Wednesday","Thursday","Friday"]
-PEOPLE = ["ma","bo","gege"]
+PEOPLE = ["ma","bo","gege","toooooooloooong","one\ntwo","one\ntwo\nthree\nfour","how long can it be in this boxS"]
 
 class Window:
     def __init__(self, width, height):
         self.overlay_labels = [[None for _ in range(6)] for _ in range(7)]
-
+        self.btns = []
         self.__root = Tk()
         self.__root.title("Planner")
         self.__canvas = Canvas(self.__root, bg="white", height=height, width=width)
@@ -36,12 +36,12 @@ class Window:
         for c in range(5,-1,-1):
             for r in range(7):
                 if c == 5 and r < start_day or i > sel_month[1]:
-                    self.sgrid.btns[r][c][0]["state"] = "disabled"
-                    self.sgrid.btns[r][c][1]["state"] = "disabled"
+                    self.btns[r][c][0]["state"] = "disabled"
+                    self.btns[r][c][1]["state"] = "disabled"
                     self.overlay_labels[r][c]["text"] = ""
                     continue
-                self.sgrid.btns[r][c][0]["state"] = "normal"
-                self.sgrid.btns[r][c][1]["state"] = "normal"
+                self.btns[r][c][0]["state"] = "normal"
+                self.btns[r][c][1]["state"] = "normal"
                 self.overlay_labels[r][c]["text"] = str(i)
                 i += 1          
         
@@ -58,19 +58,25 @@ class Window:
         month_spin.pack(side="left",padx=5)
         year_spin.pack(side="right",padx=5)
 
+    def update_btn_text(self,row,col,bn,txt):
+        current = self.btns[row][col][bn]["text"]
+        self.btns[row][col][bn]["text"] = self.btns[row][col][bn]["text"] + txt + " " if txt not in current else self.btns[row][col][bn]["text"].replace(txt,"")
+
+
+
     def create_btns(self,on_click,r,c):
         cell_frame = Frame(self.__grid_frame, width=100, height=60,highlightbackground="black",highlightthickness=1)
         cell_frame.grid(row=r,column=c,padx=2,pady=2)
         cell_frame.grid_propagate(False)
 
-        btn1 = Button(cell_frame,text="", width=8,height=2,
-                             command=lambda r=r, c=c:on_click(r,c,0,self.sel_option.get()))
-        btn2 = Button(cell_frame,text="", width=8,height=2,
-                             command=lambda r=r, c=c:on_click(r,c,1,self.sel_option.get()))
+        btn1 = Button(cell_frame,text="", width=8,height=2,wraplength=100,
+                             command=lambda r=r, c=c:on_click(r,c,0,self.sel_option.get(),self))
+        btn2 = Button(cell_frame,text="", width=8,height=2,wraplength=100,
+                             command=lambda r=r, c=c:on_click(r,c,1,self.sel_option.get(),self))
         btn1.pack(side="top",expand=True)
         btn2.pack(side="bottom",expand=True)
         lab = Label(cell_frame,text="")
-        lab.place(x=2,y=2)
+        lab.place(x=80,y=80)
         self.overlay_labels[r][c] = lab
         return (btn1,btn2)
     
@@ -93,21 +99,21 @@ class Window:
 
     def close(self):
         self.__running = False
-    
+
 
 class S_grid:
-    def on_click(self,row, col,bn,txt):
-        current = self.btns[row][col][bn]["text"]
-        self.btns[row][col][bn]["text"] = txt if current == "" else ""
-        print(row)
-        print(col)
+    def on_click(self,row, col,bn,txt,win):
+        win.update_btn_text(row,col,bn,txt)
+        #current = self.btns[row][col][bn]["text"]
+        #self.btns[row][col][bn]["text"] = self.btns[row][col][bn]["text"] + txt + " " if txt not in current else self.btns[row][col][bn]["text"].replace(txt,"")
+
     def __init__(self,win, rows, cols):
         self.btns = []
         for r in range(rows):
             row = []
             for c in range(cols):
                 row.append(win.create_btns(self.on_click,r,c))
-            self.btns.append(row)
+            win.btns.append(row)
             win.create_day_label(DAYS[r],r)
             
 
