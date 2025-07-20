@@ -1,25 +1,27 @@
 from tkinter import Tk, BOTH, Canvas, Button,Frame, Label,StringVar,OptionMenu,ttk
 from datetime import datetime
+from logic import assign_shifts,save
 import calendar
 
 DAYS = ["Saturday","Sunday","Monday","Tuesday","Wednesday","Thursday","Friday"]
-PEOPLE = ["omar","ahmad","neven","aya","one\ntwo","one\ntwo\nthree\nfour","how long can it be in this boxS"]
 
 class Window:
-    def __init__(self, width, height):
+    def __init__(self, width, height,people):
         self.overlay_labels = [[None for _ in range(6)] for _ in range(7)]
         self.btns = []
+        self.people = people
         self.__root = Tk()
         self.__root.title("Planner")
         self.__canvas = Canvas(self.__root, bg="white", height=height, width=width)
         self.__canvas.pack(fill=BOTH, expand=1)
         self.sel_option = StringVar(self.__root)
-        self.sel_option.set(PEOPLE[0])
+        self.sel_option.set(self.people[0].name)
         self.date = datetime.today()
-        self.sel_month = StringVar(value=calendar.month_abbr[self.date.month])
+        self.sel_month = StringVar(value=self.date.month)
         self.sel_year = StringVar(value=self.date.year)
         self.create_option_menu()
         self.create_datepicker()
+        self.create_buttons()
         self.__grid_frame = Frame(self.__root)
         self.__grid_frame.place(x=20,y =80)
         self.sgrid = S_grid(self,7,6)
@@ -30,7 +32,7 @@ class Window:
     
     def update_overlay_labels(self):
         sel_month = calendar.monthrange(int(self.sel_year.get()),
-                                        list(calendar.month_abbr).index(self.sel_month.get()))
+                                        int(self.sel_month.get()))
         start_day = DAYS.index(calendar.day_name[sel_month[0]])
         i = 1
         for c in range(5,-1,-1):
@@ -47,10 +49,17 @@ class Window:
         
     def on_spinbox_change(self):
         self.update_overlay_labels()
+        self.empty_btn_text()
+
+    def empty_btn_text(self):
+        for r in range(7):
+            for c in range(6):
+                self.btns[r][c][0]["text"] = ""
+                self.btns[r][c][1]["text"] = ""
 
     def create_datepicker(self):
         years = [str(y) for y in range(self.date.year -10, self.date.year +10)]
-        months = calendar.month_abbr[1:]
+        months = [str(y) for y in range(1,13)]
         date_frame = Frame(self.__root)
         date_frame.place(x=20,y=40)
         year_spin = ttk.Spinbox(date_frame, values=years,textvariable=self.sel_year,width=4,command=self.on_spinbox_change)
@@ -82,8 +91,32 @@ class Window:
         day = Label(self.__grid_frame,text=txt,width=10)
         day.grid(row=row,column=6,padx=2,pady=2)
 
+    def make_schedule(self):
+        self.empty_btn_text()
+        schedule = assign_shifts(self.people,int(self.sel_year.get()),int(self.sel_month.get()))
+        firstday, _ = calendar.monthrange(int(self.sel_year.get()),
+                                        int(self.sel_month.get()))
+        month_start = (firstday+2 ) % 7
+        for d ,shifts in schedule.items():
+            index = d -1
+            for shift ,people in shifts.items():
+                row = (month_start+ index)%7
+                col = 5- ((month_start+index)//7)
+                for p in people:
+                    self.update_btn_text(row,col,int(shift),str(p.name))
+
+    
+    def save_schedule(self):
+        save(self.people)
+
+    def create_buttons(self):
+        btn = Button(self.__root,command=self.make_schedule,text="Make schedule")
+        self.__canvas.create_window(900,100,window=btn)
+        sv_btn = Button(self.__root,command=self.save_schedule,text="save")
+        self.__canvas.create_window(900,150,window=sv_btn)
+
     def create_option_menu(self):
-        dp_menu = OptionMenu(self.__root,self.sel_option,*PEOPLE)
+        dp_menu = OptionMenu(self.__root,self.sel_option,*[p.name for p in self.people])
         self.__canvas.create_window(900,50,window=dp_menu)
 
     def redraw(self):
