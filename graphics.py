@@ -3,7 +3,7 @@ from datetime import datetime
 import calendar
 
 DAYS = ["Saturday","Sunday","Monday","Tuesday","Wednesday","Thursday","Friday"]
-PEOPLE = ["ma","bo","gege","toooooooloooong","one\ntwo","one\ntwo\nthree\nfour","how long can it be in this boxS"]
+PEOPLE = ["omar","ahmad","neven","aya","one\ntwo","one\ntwo\nthree\nfour","how long can it be in this boxS"]
 
 class Window:
     def __init__(self, width, height):
@@ -61,8 +61,6 @@ class Window:
     def update_btn_text(self,row,col,bn,txt):
         current = self.btns[row][col][bn]["text"]
         self.btns[row][col][bn]["text"] = self.btns[row][col][bn]["text"] + txt + " " if txt not in current else self.btns[row][col][bn]["text"].replace(txt,"")
-
-
 
     def create_btns(self,on_click,r,c):
         cell_frame = Frame(self.__grid_frame, width=100, height=60,highlightbackground="black",highlightthickness=1)
